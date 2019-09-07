@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FlexLabs.EntityFrameworkCore.Upsert.Runners;
@@ -25,8 +26,10 @@ namespace FlexLabs.EntityFrameworkCore.Upsert
         private Expression<Func<TEntity, object>> _matchExpression = null;
         private Expression<Func<TEntity, TEntity, TEntity>> _updateExpression = null;
         private Expression<Func<TEntity, TEntity, bool>> _updateCondition = null;
-        private bool _noUpdate = false, _useExpressionCompiler = false;
-
+        private bool _noUpdate = false, _useExpressionCompiler = false, _delete = false;
+        //this is initialized when UpdateIfDifferent is called an intended to keep properties which are not intended to compare like (Update date, etc)
+        private IList<PropertyInfo> _excludedFieldsToNotCompare = null;
+        private Expression<Func<TEntity, bool>> _deleteCondition = null;
         /// <summary>
         /// Initialise an instance of the UpsertCommandBuilder
         /// </summary>
@@ -133,6 +136,52 @@ namespace FlexLabs.EntityFrameworkCore.Upsert
         }
 
         /// <summary>
+        /// doesn't update records which will remain same
+        /// </summary>
+        /// <returns></returns>
+        public UpsertCommandBuilder<TEntity> UpdateIfDifferent(Expression<Func<TEntity, object[]>> exclude = null) 
+        {
+            if (_noUpdate)
+                throw new InvalidOperationException($"Can't call {nameof(UpdateIfDifferent)} when {nameof(NoUpdate)} has been called, as they are mutually exclusive");
+
+            _excludedFieldsToNotCompare = new List<PropertyInfo>();
+            if (exclude == null)
+                return this;
+            var errorMessage = $"Expression '{exclude}' should refer to property array.";
+            if (!(exclude.Body is NewExpression newExp))
+            {
+                throw new ArgumentException(errorMessage);
+            }
+            foreach (var arg in newExp.Arguments)
+            {
+                if (!(arg is MemberExpression memberExp))
+                {
+                    throw new ArgumentException(errorMessage);
+                }
+                if (!(memberExp.Member is PropertyInfo propInfo))
+                    throw new ArgumentException(errorMessage);
+
+                if (typeof(TEntity) != propInfo.ReflectedType &&
+                    !typeof(TEntity).IsSubclassOf(propInfo.ReflectedType))
+                    throw new ArgumentException(
+                        $"Expression '{exclude}' refers to a property that does not belong to type {typeof(TEntity)}.");
+                _excludedFieldsToNotCompare.Add(propInfo);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Deletes if not matched by source
+        /// </summary>
+        /// <returns></returns>
+        public UpsertCommandBuilder<TEntity> DeleteWhenNotMatchedBySource(Expression<Func<TEntity, bool>> condition = null)
+        {
+            _delete = true;
+            _deleteCondition = condition;
+            return this;
+        }
+
+        /// <summary>
         /// Enables the use of the fallback expression compiler. This can be enabled to add support for more expression types in the Update statement
         /// at the cost of slower evaluation.
         /// If you have an expression type that isn't supported out of the box, please see https://go.flexlabs.org/upsert.expressions
@@ -150,6 +199,8 @@ namespace FlexLabs.EntityFrameworkCore.Upsert
         /// <returns></returns>
         public UpsertCommandBuilder<TEntity> NoUpdate()
         {
+            if (_updateExpression != null)
+                throw new InvalidOperationException($"Can't call {nameof(NoUpdate)} when {nameof(WhenMatched)} has been called, as they are mutually exclusive");
             if (_updateExpression != null)
                 throw new InvalidOperationException($"Can't call {nameof(NoUpdate)} when {nameof(WhenMatched)} has been called, as they are mutually exclusive");
 
@@ -178,7 +229,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert
                 return 0;
 
             var commandRunner = GetCommandRunner();
-            return commandRunner.Run(_dbContext, _entityType, _entities, _matchExpression, _updateExpression, _updateCondition, _noUpdate, _useExpressionCompiler);
+            return commandRunner.Run(_dbContext, _entityType, _entities, _matchExpression, _updateExpression, _updateCondition, _noUpdate, _useExpressionCompiler, _excludedFieldsToNotCompare, _delete, _deleteCondition);
         }
 
         /// <summary>
@@ -192,7 +243,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert
                 return Task.FromResult(0);
 
             var commandRunner = GetCommandRunner();
-            return commandRunner.RunAsync(_dbContext, _entityType, _entities, _matchExpression, _updateExpression, _updateCondition, _noUpdate, _useExpressionCompiler, token);
+            return commandRunner.RunAsync(_dbContext, _entityType, _entities, _matchExpression, _updateExpression, _updateCondition, _noUpdate, _useExpressionCompiler, _excludedFieldsToNotCompare, _delete, _deleteCondition, token);
         }
     }
 }

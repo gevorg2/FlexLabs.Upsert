@@ -22,7 +22,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 ( "Status", new ConstantValue("status") { ArgumentIndex = 1}, (string)null ),
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, null, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, null, null, false, null);
 
             Assert.Equal(NoUpdate_Sql, generatedSql);
         }
@@ -47,7 +47,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 },
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, entities, new[] { ("ID", false) }, null, null);
+            var generatedSql = runner.GenerateCommand(tableName, entities, new[] { ("ID", false) }, null, null, false, null);
 
             Assert.Equal(NoUpdate_Multiple_Sql, generatedSql);
         }
@@ -64,7 +64,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 ( "Status", new ConstantValue("status") { ArgumentIndex = 1}, (string)null ),
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID1", false), ("ID2", true) }, null, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID1", false), ("ID2", true) }, null, null, false, null);
 
             Assert.Equal(NoUpdate_WithNullable_Sql, generatedSql);
         }
@@ -85,7 +85,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 ("Name", (IKnownValue)new ConstantValue("newValue") { ArgumentIndex = 2 })
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_Constant_Sql, generatedSql);
         }
@@ -114,7 +114,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 ("Name", (IKnownValue)new ConstantValue("newValue") { ArgumentIndex = 4 })
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, entities, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, entities, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_Constant_Multiple_Sql, generatedSql);
         }
@@ -135,7 +135,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 ("Name", (IKnownValue)new PropertyValue("Name", false) { Property = new MockProperty("Name") })
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_Source_Sql, generatedSql);
         }
@@ -156,7 +156,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 ("Name", (IKnownValue)new PropertyValue("Name", false) { Property = new MockProperty("Name2") })
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_Source_RenamedCol_Sql, generatedSql);
         }
@@ -179,7 +179,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                     new ConstantValue(1) { ArgumentIndex = 2 }))
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_BinaryAdd_Sql, generatedSql);
         }
@@ -202,7 +202,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                     new ConstantValue(1) { ArgumentIndex = 2 }))
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_Coalesce_Sql, generatedSql);
         }
@@ -227,7 +227,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                     new PropertyValue("Status", false) { Property = new MockProperty("Status") }))
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_BinaryAddMultiply_Sql, generatedSql);
         }
@@ -252,7 +252,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                         new PropertyValue("Status", false) { Property = new MockProperty("Status") })))
             };
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, null, false, null);
 
             Assert.Equal(Update_BinaryAddMultiplyGroup_Sql, generatedSql);
         }
@@ -274,7 +274,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
             };
             var condition = new KnownExpression(ExpressionType.GreaterThan, new PropertyValue("Counter", true) { Property = new MockProperty("Counter") }, new ConstantValue(12) { ArgumentIndex = 3 });
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, condition);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, condition, false, null);
 
             Assert.Equal(Update_Condition_Sql, generatedSql);
         }
@@ -298,7 +298,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
                 new KnownExpression(ExpressionType.GreaterThan, new PropertyValue("Counter", true) { Property = new MockProperty("Counter") }, new ConstantValue(12) { ArgumentIndex = 3 }),
                 new KnownExpression(ExpressionType.NotEqual, new PropertyValue("Status", true) { Property = new MockProperty("Status") }, new PropertyValue("Status", false) { Property = new MockProperty("Status") }));
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, condition);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, condition, false, null);
 
             Assert.Equal(Update_Condition_AndCondition_Sql, generatedSql);
         }
@@ -320,7 +320,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.Runners
             };
             var condition = new KnownExpression(ExpressionType.NotEqual, new PropertyValue("Counter", true) { Property = new MockProperty("Counter") }, new ConstantValue(null) { ArgumentIndex = 3 });
 
-            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, condition);
+            var generatedSql = runner.GenerateCommand(tableName, new[] { entity }, new[] { ("ID", false) }, updates, condition, false, null);
 
             Assert.Equal(Update_Condition_NullCheck_Sql, generatedSql);
         }

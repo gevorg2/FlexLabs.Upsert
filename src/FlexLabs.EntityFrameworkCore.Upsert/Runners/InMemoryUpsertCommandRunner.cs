@@ -119,18 +119,28 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
         }
 
         /// <inheritdoc/>
-        public override int Run<TEntity>(DbContext dbContext, IEntityType entityType, ICollection<TEntity> entities, Expression<Func<TEntity, object>> matchExpression,
-            Expression<Func<TEntity, TEntity, TEntity>> updateExpression, Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler)
+        public override int Run<TEntity>(DbContext dbContext, IEntityType entityType, ICollection<TEntity> entities,
+            Expression<Func<TEntity, object>> matchExpression,
+            Expression<Func<TEntity, TEntity, TEntity>> updateExpression,
+            Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler,
+            IList<PropertyInfo> excludedFieldsToNotCompare, bool delete, Expression<Func<TEntity, bool>> deleteCondition)
         {
             RunCore(dbContext, entityType, entities, matchExpression, updateExpression, updateCondition, noUpdate);
             return dbContext.SaveChanges();
         }
 
         /// <inheritdoc/>
-        public override Task<int> RunAsync<TEntity>(DbContext dbContext, IEntityType entityType, ICollection<TEntity> entities, Expression<Func<TEntity, object>> matchExpression,
-            Expression<Func<TEntity, TEntity, TEntity>> updateExpression, Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler,
+        public override Task<int> RunAsync<TEntity>(DbContext dbContext, IEntityType entityType,
+            ICollection<TEntity> entities, Expression<Func<TEntity, object>> matchExpression,
+            Expression<Func<TEntity, TEntity, TEntity>> updateExpression,
+            Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler,
+            IList<PropertyInfo> excludedFieldsToNotCompare, bool delete, Expression<Func<TEntity, bool>> deleteCondition,
             CancellationToken cancellationToken)
         {
+            if (delete)
+            {
+                throw new NotImplementedException("Delete functionality is not implemented for InMemory");
+            }
             RunCore(dbContext, entityType, entities, matchExpression, updateExpression, updateCondition, noUpdate);
             return dbContext.SaveChangesAsync(cancellationToken);
         }

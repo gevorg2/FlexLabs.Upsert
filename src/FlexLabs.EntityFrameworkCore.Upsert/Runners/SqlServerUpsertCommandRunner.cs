@@ -22,7 +22,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
         /// <inheritdoc/>
         public override string GenerateCommand(string tableName, ICollection<ICollection<(string ColumnName, ConstantValue Value, string DefaultSql)>> entities,
             ICollection<(string ColumnName, bool IsNullable)> joinColumns, ICollection<(string ColumnName, IKnownValue Value)> updateExpressions,
-            KnownExpression updateCondition)
+            KnownExpression updateCondition, bool delete, KnownExpression deleteCondition)
         {
             var result = new StringBuilder();
             result.Append($"MERGE INTO {tableName} WITH (HOLDLOCK) AS [T] USING ( VALUES (");
@@ -45,6 +45,13 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
                     result.Append($" AND {ExpandExpression(updateCondition)}");
                 result.Append(" THEN UPDATE SET ");
                 result.Append(string.Join(", ", updateExpressions.Select((e, i) => $"{EscapeName(e.ColumnName)} = {ExpandValue(e.Value)}")));
+            }
+            if (delete)
+            {
+                result.Append(" WHEN NOT MATCHED BY SOURCE");
+                if (deleteCondition != null)
+                    result.Append($" AND {ExpandExpression(deleteCondition)}");
+                result.Append(" THEN DELETE");
             }
             result.Append(";");
             return result.ToString();

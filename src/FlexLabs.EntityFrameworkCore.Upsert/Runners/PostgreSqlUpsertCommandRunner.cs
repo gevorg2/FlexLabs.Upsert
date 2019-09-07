@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using FlexLabs.EntityFrameworkCore.Upsert.Internal;
@@ -20,10 +21,16 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
         protected override string TargetPrefix => "\"T\".";
 
         /// <inheritdoc/>
-        public override string GenerateCommand(string tableName, ICollection<ICollection<(string ColumnName, ConstantValue Value, string DefaultSql)>> entities,
-            ICollection<(string ColumnName, bool IsNullable)> joinColumns, ICollection<(string ColumnName, IKnownValue Value)> updateExpressions,
-            KnownExpression updateCondition)
+        public override string GenerateCommand(string tableName,
+            ICollection<ICollection<(string ColumnName, ConstantValue Value, string DefaultSql)>> entities,
+            ICollection<(string ColumnName, bool IsNullable)> joinColumns,
+            ICollection<(string ColumnName, IKnownValue Value)> updateExpressions,
+            KnownExpression updateCondition, bool delete, KnownExpression deleteCondition)
         {
+            if (delete)
+            {
+                throw new NotImplementedException("Delete functionality is not implemented for PostgreSQL");
+            }
             var result = new StringBuilder();
             result.Append($"INSERT INTO {tableName} AS \"T\" (");
             result.Append(string.Join(", ", entities.First().Select(e => EscapeName(e.ColumnName))));

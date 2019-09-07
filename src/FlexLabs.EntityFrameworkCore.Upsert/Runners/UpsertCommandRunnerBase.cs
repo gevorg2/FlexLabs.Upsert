@@ -19,13 +19,19 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
         public abstract bool Supports(string name);
 
         /// <inheritdoc/>
-        public abstract int Run<TEntity>(DbContext dbContext, IEntityType entityType, ICollection<TEntity> entities, Expression<Func<TEntity, object>> matchExpression,
-            Expression<Func<TEntity, TEntity, TEntity>> updateExpression, Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler)
+        public abstract int Run<TEntity>(DbContext dbContext, IEntityType entityType, ICollection<TEntity> entities,
+            Expression<Func<TEntity, object>> matchExpression,
+            Expression<Func<TEntity, TEntity, TEntity>> updateExpression,
+            Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler,
+            IList<PropertyInfo> excludedFieldsToNotCompare, bool delete, Expression<Func<TEntity, bool>> deleteCondition)
             where TEntity : class;
 
         /// <inheritdoc/>
-        public abstract Task<int> RunAsync<TEntity>(DbContext dbContext, IEntityType entityType, ICollection<TEntity> entities, Expression<Func<TEntity, object>> matchExpression,
-            Expression<Func<TEntity, TEntity, TEntity>> updateExpression, Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler,
+        public abstract Task<int> RunAsync<TEntity>(DbContext dbContext, IEntityType entityType,
+            ICollection<TEntity> entities, Expression<Func<TEntity, object>> matchExpression,
+            Expression<Func<TEntity, TEntity, TEntity>> updateExpression,
+            Expression<Func<TEntity, TEntity, bool>> updateCondition, bool noUpdate, bool useExpressionCompiler,
+            IList<PropertyInfo> excludedFieldsToNotCompare, bool delete, Expression<Func<TEntity, bool>> deleteCondition,
             CancellationToken cancellationToken) where TEntity : class;
 
         /// <summary>
@@ -80,6 +86,54 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
                 throw new InvalidMatchColumnsException();
 
             return joinColumns;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="updateCondition"></param>
+        /// <param name="updateColumns"></param>
+        /// <param name="excludedFieldsToNotCompare"></param>
+        /// <returns></returns>
+        protected Expression<Func<TEntity, TEntity, bool>> PrepareUpdateCondition<TEntity>(Expression<Func<TEntity, TEntity, bool>> updateCondition, IEnumerable<IProperty> updateColumns, IList<PropertyInfo> excludedFieldsToNotCompare)
+        {
+            var type = typeof(TEntity);
+            var res = updateColumns.Where(p => excludedFieldsToNotCompare.All(jc => jc.Name != p.Name))
+                .ToList();
+            var paramExpr1 = Expression.Parameter(type, "val1");
+            var paramExpr2 = Expression.Parameter(type, "val2");
+            Expression exp = null;
+            foreach (var eprop in res)
+            {
+                Expression propExp1 = Expression.Property(paramExpr1, eprop.PropertyInfo);
+                Expression propExp2 = Expression.Property(paramExpr2, eprop.PropertyInfo);
+                Expression equalExpression = Expression.NotEqual(propExp1, propExp2);
+                if (eprop.IsNullable)
+                {
+                    Expression nullCheck1 = Expression.NotEqual(propExp1,
+                        Expression.Constant(null, eprop.PropertyInfo.PropertyType));
+                    Expression nullCheck2 = Expression.NotEqual(propExp2,
+                        Expression.Constant(null, eprop.PropertyInfo.PropertyType));
+                    equalExpression = Expression.AndAlso(
+                        Expression.OrElse(nullCheck1, nullCheck2), equalExpression);
+                }
+
+                exp = exp == null ? equalExpression : Expression.OrElse(exp, equalExpression);
+            }
+            if (exp == null)
+            {
+                return updateCondition;
+            }
+            if (updateCondition != null)
+            {
+                exp = Expression.AndAlso(exp, updateCondition.Body);
+            }
+            return Expression.Lambda<Func<TEntity, TEntity, bool>>(
+                exp,
+                paramExpr1,
+                paramExpr2);
         }
     }
 }
