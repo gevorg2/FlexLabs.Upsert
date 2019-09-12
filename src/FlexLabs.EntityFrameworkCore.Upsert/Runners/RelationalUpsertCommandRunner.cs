@@ -186,6 +186,8 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
             var arguments = newEntities.SelectMany(e => e.Select(p => p.Value)).ToList();
             if (updateExpressions != null)
                 arguments.AddRange(updateExpressions.SelectMany(e => e.Value.GetConstantValues()));
+            if (deleteConditionExpression != null)
+                arguments.AddRange(deleteConditionExpression.GetConstantValues());
             int i = 0;
             foreach (var arg in arguments)
                 arg.ArgumentIndex = i++;

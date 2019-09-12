@@ -4,16 +4,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.1</LangVersion>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\FlexLabs.EntityFrameworkCore.Upsert.xml</DocumentationFile>
-    <Authors>Artiom Chilaru</Authors>
-    <Company>Artiom Chilaru</Company>
-    <Description>Adds basic support for "Upsert" operations to EF Core.
-
-Uses `INSERT … ON CONFLICT DO UPDATE` in PostgreSQL/Sqlite, `MERGE` in SqlServer and `INSERT INTO … ON DUPLICATE KEY UPDATE` in MySQL.
-
-Also supports injecting sql command generators to add support for other providers</Description>
-    <Copyright>Artiom Chilaru © 2019</Copyright>
-    <PackageProjectUrl>https://github.com/artiomchi/FlexLabs.Upsert</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/artiomchi/FlexLabs.Upsert</RepositoryUrl>
+    <Authors>Gevorg Narimanyan</Authors>
+    <Company>Gevorg Narimanyan</Company>
+    <Description>Added some additions to opensource library</Description>
+    <Copyright>Artiom Chilaru © 2019 modified by Gevorg Narimanyan</Copyright>
+    <PackageProjectUrl>https://github.com/gevorg2/FlexLabs.Upsert</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gevorg2/FlexLabs.Upsert</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Entity Framework Core entity-framework-core EF EntityFramework EntityFrameworkCore EFCore Upsert</PackageTags>
     <VersionPrefix>2.2.0</VersionPrefix>
@@ -34,6 +30,8 @@ v2.1.0:
 + Support for conditional expressions
 + Support for comparison expressions
     </PackageReleaseNotes>
+    <PackageId>WorldCentral.EntityFrameworkCore.Upsert</PackageId>
+    <Product>WorldCentral.EntityFrameworkCore.Upsert</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -46,7 +44,7 @@ v2.1.0:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.6" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Release'">
