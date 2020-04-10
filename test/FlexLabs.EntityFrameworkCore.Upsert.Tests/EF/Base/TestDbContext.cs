@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -92,7 +92,6 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Tests.EF.Base
 
                     // For debugging purpose, we want to see which sqlite3 version we are using.
                     //Console.WriteLine($"Currently using Sqlite v{SQLitePCL.raw.sqlite3_libversion()}");
-
                     options.UseSqlite(connectionString);
                     break;
                 default:
