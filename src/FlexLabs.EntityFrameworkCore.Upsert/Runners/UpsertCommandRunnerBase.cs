@@ -112,12 +112,17 @@ namespace FlexLabs.EntityFrameworkCore.Upsert.Runners
                 Expression equalExpression = Expression.NotEqual(propExp1, propExp2);
                 if (eprop.IsNullable)
                 {
-                    Expression nullCheck1 = Expression.NotEqual(propExp1,
+                    Expression nullCheck1 = Expression.Equal(propExp1,
                         Expression.Constant(null, eprop.PropertyInfo.PropertyType));
-                    Expression nullCheck2 = Expression.NotEqual(propExp2,
+                    Expression nullCheck2 = Expression.Equal(propExp2,
                         Expression.Constant(null, eprop.PropertyInfo.PropertyType));
-                    equalExpression = Expression.AndAlso(
-                        Expression.OrElse(nullCheck1, nullCheck2), equalExpression);
+                    Expression notNullCheck1 = Expression.NotEqual(propExp1,
+                        Expression.Constant(null, eprop.PropertyInfo.PropertyType));
+                    Expression notNullCheck2 = Expression.NotEqual(propExp2,
+                        Expression.Constant(null, eprop.PropertyInfo.PropertyType));
+                    equalExpression = Expression.OrElse(
+                        Expression.AndAlso(nullCheck1, notNullCheck2), equalExpression);
+                    equalExpression = Expression.OrElse(Expression.AndAlso(nullCheck2, notNullCheck1), equalExpression);
                 }
 
                 exp = exp == null ? equalExpression : Expression.OrElse(exp, equalExpression);

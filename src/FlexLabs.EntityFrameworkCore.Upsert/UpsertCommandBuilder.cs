@@ -139,7 +139,7 @@ namespace FlexLabs.EntityFrameworkCore.Upsert
         /// doesn't update records which will remain same
         /// </summary>
         /// <returns></returns>
-        public UpsertCommandBuilder<TEntity> UpdateIfDifferent(Expression<Func<TEntity, object[]>> exclude = null) 
+        public UpsertCommandBuilder<TEntity> UpdateIfDifferent(Expression<Func<TEntity, object>> exclude = null) 
         {
             if (_noUpdate)
                 throw new InvalidOperationException($"Can't call {nameof(UpdateIfDifferent)} when {nameof(NoUpdate)} has been called, as they are mutually exclusive");

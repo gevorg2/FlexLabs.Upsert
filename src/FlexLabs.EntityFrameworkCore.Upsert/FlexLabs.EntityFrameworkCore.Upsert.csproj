@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/gevorg2/FlexLabs.Upsert</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Entity Framework Core entity-framework-core EF EntityFramework EntityFrameworkCore EFCore Upsert</PackageTags>
-    <VersionPrefix>2.2.0</VersionPrefix>
+    <VersionPrefix>2.2.2</VersionPrefix>
     <PackageReleaseNotes>
 v2.2.0:      
 + Support for more expressions (AND and OR)
